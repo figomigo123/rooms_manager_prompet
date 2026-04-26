@@ -1,0 +1,91 @@
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: rooms_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+    networks:
+      - rooms_network
+
+  # Redis Cache
+  redis:
+    image: redis:7.0-alpine
+    container_name: rooms_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - rooms_network
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth_service
+    ports:
+      - "8001:8001"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://root:password123@mongodb:27017/rooms_auth?authSource=admin
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your_jwt_secret_key_change_this_in_production
+      JWT_EXPIRATION: 3600000
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - rooms_network
+
+  # Room Service
+  room-service:
+    build:
+      context: ./services/room-service
+      dockerfile: Dockerfile
+    container_name: room_service
+    ports:
+      - "8002:8002"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://root:password123@mongodb:27017/rooms_core?authSource=admin
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AUTH_SERVICE_URL: http://auth-service:8001
+    depends_on:
+      - mongodb
+      - redis
+      - auth-service
+    networks:
+      - rooms_network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api_gateway
+    ports:
+      - "8080:8080"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8001
+      ROOM_SERVICE_URL: http://room-service:8002
+    depends_on:
+      - auth-service
+      - room-service
+    networks:
+      - rooms_network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  rooms_network:
+    driver: bridge
