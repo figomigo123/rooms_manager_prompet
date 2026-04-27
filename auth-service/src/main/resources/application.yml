@@ -4,9 +4,6 @@ spring:
   data:
     mongodb:
       uri: mongodb://mongodb:27017/auth_db
-  jpa:
-    hibernate:
-      ddl-auto: update
   jackson:
     default-property-inclusion: non_null
 
@@ -28,4 +25,4 @@ app:
 logging:
   level:
     root: INFO
-    com.example: DEBUG
+    com.roomsmanager: DEBUG
