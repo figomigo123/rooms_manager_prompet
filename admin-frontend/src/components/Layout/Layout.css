@@ -1,0 +1,17 @@
+.logo {
+  height: 64px;
+  margin: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+.logo img {
+  height: 32px;
+  width: 32px;
+}
