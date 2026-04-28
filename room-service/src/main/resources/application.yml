@@ -3,32 +3,35 @@ spring:
     name: room-service
   data:
     mongodb:
-      uri: mongodb://root:password123@mongodb:27017/room_db?authSource=admin
-    redis:
-      host: redis
-      port: 6379
-  jackson:
-    default-property-inclusion: non_null
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/rooms_db}
+  redis:
+    host: ${SPRING_REDIS_HOST:localhost}
+    port: ${SPRING_REDIS_PORT:6379}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
 
 server:
   port: 8002
+  servlet:
+    context-path: /
 
 jwt:
-  secret: your-secret-key-change-in-production-min-32-chars-long
+  secret: ${JWT_SECRET:your-secret-key-change-in-production-min-32-chars-long}
   expiration: 900000
 
-auth-service:
-  url: http://auth-service:8001
-  verify-token-endpoint: /auth/v1/verify-token
+auth:
+  service:
+    url: ${AUTH_SERVICE_URL:http://localhost:8001}
 
-app:
-  cors:
-    allowed-origins: http://localhost:3000,http://localhost:8080
-    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
-    allowed-headers: Content-Type,Authorization
-    allow-credentials: true
+mediasoup:
+  url: ${MEDIASOUP_URL:http://mediasoup-service:3000}
 
 logging:
   level:
     root: INFO
     com.roomsmanager: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
